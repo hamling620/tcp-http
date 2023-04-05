@@ -1,0 +1,25 @@
+请求报文
+
+> GET / HTTP / 1.1
+> Host: localhost: 3000
+> User - Agent: curl / 7.64.1
+> Accept: */*
+
+ > POST / HTTP / 1.1
+ > Host: localhost: 3000
+ > User - Agent: curl / 7.64.1
+ > Accept: */*
+ > Content-Length: 12
+ > Content-Type: application/x-www-form-urlencoded
+ * upload completely sent off: 12 out of 12 bytes
+
+ 响应报文
+ 
+ < HTTP / 1.1 200 OK
+ < Date: Tue, 28 Mar 2023 13: 50: 48 GMT
+ < Connection: keep - alive
+ < Keep - Alive: timeout = 5
+ < Content - Length: 12
+ < 
+ * Connection #0 to host localhost left intact
+ name = hamling * Closing connection 0
