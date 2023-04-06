@@ -6,7 +6,7 @@ app.get('/hello', (req, res) => {
   res.end('hello')
 })
 
-app.get('/world', (req, res) => {
+app.get('/world', function (req, res) {
   res.end('world')
 })
 

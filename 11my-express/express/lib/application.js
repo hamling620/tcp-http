@@ -1,29 +1,20 @@
 const http = require('http')
-const url = require('url')
+const Router = require('./router')
 
 function Application () {
-  this._router = [{
-    path: '*', method: 'get', handler(req, res) {
-      res.end(`Cannot ${req.method} ${req.url}`)
-    }
-  }]
+  this._router = new Router()
 }
 
 Application.prototype.get = function (path, handler) {
-  this._router.push({ path, method: 'get', handler })
+  this._router.get(path, handler)
 }
 
 Application.prototype.listen = function () {
   const server = http.createServer((req, res) => {
-    const { pathname } = url.parse(req.url)
-    const requestMethod = req.method.toLowerCase()
-    for (let i = 1; i < this._router.length; i++) {
-      const { path, method, handler } = this._router[i]
-      if (pathname === path && requestMethod === method) {
-        return handler(req, res)
-      }
+    function done () {
+      res.end(`Cannot ${req.method} ${req.url}`)
     }
-    return this._router[0].handler(req, res)
+    this._router.handle(req, res, done)
   })
   server.listen.apply(server, arguments)
 }
