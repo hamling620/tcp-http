@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSONP</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    function jsonp(url, { params }, fn = 'callback') {
+      return new Promise((resolve, reject) => {
+        // 处理query
+        url += url.includes('?') ? '&' : '?'
+        // 拼接params
+        const paramsArr = []
+        for (let key in params) {
+          paramsArr.push(`${key}=${params[key]}`)
+        }
+
+        // 避免函数名重复
+        const callbackName = `${fn}_jsonp_${Date.now()}`
+        paramsArr.push(`jsonp=${callbackName}`)
+        url += paramsArr.join('&')
+        console.log('url', url)
+
+        // 创建script标签
+        // console.log('fn', fn)
+        const script = document.createElement('script')
+        // 全局定义的回调函数callback
+        window[callbackName] = function (res) {
+          // 调用后删除script标签
+          document.body.removeChild(script)
+          delete window[callbackName] // 只是解引用
+
+          resolve(res)
+        }
+        script.src = url
+        // 插入script标签
+        document.body.appendChild(script)
+      })
+    }
+
+    jsonp('http://localhost:3000/jsonp?hello=hello', {
+      params: { name: 'hamling', age: 30 }
+    }, 'hello').then(res => {
+      app.innerHTML = res
+    }).catch(err => {
+      console.log('err', err)
+    })
+  </script>
+</body>
+
+</html>
