@@ -100,14 +100,17 @@ class Server {
     const etag = crypto.createHash('md5').update(statObj.ctime.toGMTString() + statObj.size).digest('hex')
     const lastModified = statObj.ctime.toGMTString()
 
-    if (ifNoneMatch && ifNoneMatch !== etag) return false
-    if (ifModifiedSince && ifModifiedSince !== lastModified) return false
-    if (!ifNoneMatch) {
-      res.setHeader('ETag', etag)
-    }
-    if (!ifModifiedSince) {
-      res.setHeader('Last-Modified', lastModified)
-    }
+    // 存在问题
+    // if (ifNoneMatch && ifNoneMatch !== etag) return false
+    // if (ifModifiedSince && ifModifiedSince !== lastModified) return false
+    // if (!ifNoneMatch) {
+
+    // }
+    // if (!ifModifiedSince) {
+
+    // }
+    res.setHeader('ETag', etag)
+    res.setHeader('Last-Modified', lastModified)
     return ifNoneMatch || ifModifiedSince
   }
 
