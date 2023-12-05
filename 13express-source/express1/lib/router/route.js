@@ -1,4 +1,3 @@
-const url = require('url')
 const methods = require('methods')
 const Layer = require('./layer')
 
@@ -9,6 +8,7 @@ function Route () {
 
 methods.forEach(method => {
   Route.prototype[method] = function (handlers) {
+    // 根据handlers创建新的层
     handlers.forEach(handler => {
       const layer = new Layer('', handler)
       layer.method = method
@@ -20,7 +20,8 @@ methods.forEach(method => {
 
 Route.prototype.dispatch = function (req, res, out) {
   let idx = 0
-  const next = () => {
+  const next = (err) => {
+    if (err) return out(err)
     if (idx === this.stack.length) return out()
     const layer = this.stack[idx++]
     const requestMethod = req.method.toLowerCase()

@@ -1,4 +1,4 @@
-const express = require('./express')
+const express = require('./express1')
 
 const app = express()
 
@@ -26,3 +26,6 @@ app.post('/user', (req, res) => {
 app.listen(3000, () => {
   console.log('server running at port 3000')
 }) 
+
+console.dir(app.router, { depth: 10 })
+

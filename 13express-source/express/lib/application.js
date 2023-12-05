@@ -1,12 +1,14 @@
 const http = require('http')
 const methods = require('methods')
 const Router = require('./router')
+const init = require('./middleware/init')
 
 function Application () {}
 
 Application.prototype.lazy_route = function () {
   if (!this.router) {
     this.router = new Router()
+    this.use(init())
   }
 }
 
@@ -20,6 +22,10 @@ methods.forEach(method => {
 Application.prototype.use = function (...args) {
   this.lazy_route()
   this.router.use(...args)
+}
+Application.prototype.param = function (...args) {
+  this.lazy_route()
+  this.router.param(...args)
 }
 
 Application.prototype.listen = function (...args) {

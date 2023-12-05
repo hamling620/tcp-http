@@ -4,11 +4,19 @@ const Layer = require('./layer')
 const Route = require('./route')
 
 function Router () {
-  this.stack = []
+  const router = function (req, res, next) {
+    router.handle(req, res, next)
+  }
+  router.stack = []
+  router.paramCallbacks = {}
+  router.__proto__ = proto
+  return router
 }
 
+const proto = {}
+
 methods.forEach(method => {
-  Router.prototype[method] = function (path, handlers) {
+  proto[method] = function (path, handlers) {
     const route = new Route()
     route[method](handlers)
 
@@ -18,7 +26,7 @@ methods.forEach(method => {
   }
 })
 
-Router.prototype.use = function (path, ...handlers) {
+proto.use = function (path, ...handlers) {
   if (typeof path !== 'string') {
     handlers.unshift(path)
     path = '/'
@@ -28,14 +36,57 @@ Router.prototype.use = function (path, ...handlers) {
   })
 }
 
-Router.prototype.handle = function (req, res, out) {
+proto.param = function (key, callback) {
+  const callbacks = this.paramCallbacks[key] || []
+  callbacks.push(callback)
+  this.paramCallbacks[key] = callbacks
+}
+
+proto.handle_params = function (req, res, layer, callback) {
+  const paramCallbacks = this.paramCallbacks
+  const keys = layer.keys.map(item => item.name)
+  if (!keys.length) {
+    return callback()
+  }
+  let idx = 0
+  let key, fns
+  const next = () => {
+    if (keys.length === idx) return callback()
+    key = keys[idx++]
+    fns = paramCallbacks[key]
+    if (fns && fns.length) {
+      processCallback()
+    } else {
+      next()
+    }
+  }
+  let i = 0
+  const processCallback = () => {
+    let fn = fns[i++]
+    if (fn) {
+      fn(req, res, processCallback, layer.params[key], key)
+    } else {
+      i = 0
+      next()
+    }
+  }
+  next()
+}
+
+proto.handle = function (req, res, out) {
   const { pathname: requestPath } = url.parse(req.url)
   const requestMethod = req.method.toLowerCase()
 
   let idx = 0
+  let removed = ''
   const next = (err) => {
     if (idx === this.stack.length) return out(req, res)
     const layer = this.stack[idx++]
+    if (removed) {
+      req.url = removed + req.url
+      removed = ''
+    }
+
     if (err) {
       if (!layer.route) {
         if (layer.handler.length === 4) {
@@ -52,11 +103,18 @@ Router.prototype.handle = function (req, res, out) {
           if (layer.handler.length === 4) {
             next()
           } else {
+            // use router
+            // 进入中间件时，需要去除中间件的path
+            removed = layer.path === '/' ? '' : layer.path
+            req.url = req.url.slice(removed.length)
             layer.handle_request(req, res, next)
           }
         } else {
           if (layer.route.methods[requestMethod]) {
-            layer.handle_request(req, res, next)
+            req.params = layer.params
+            this.handle_params(req, res, layer, () => {
+              layer.handle_request(req, res, next)
+            })
           } else {
             next()
           }
